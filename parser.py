@@ -1,86 +1,287 @@
-class Node: pass
+"""
+parser.py  —  TurtleScript Recursive-Descent Parser
+Builds an AST from the token stream produced by lexer.py.
+
+Grammar (simplified EBNF):
+  program    ::= statement* EOF
+  statement  ::= set_stmt | repeat_stmt | proc_stmt
+               | if_stmt  | call_stmt   | cmd_stmt
+  set_stmt   ::= SET IDENT '=' expr
+  repeat_stmt::= REPEAT expr NEWLINE statement* END
+  proc_stmt  ::= PROC IDENT IDENT? NEWLINE statement* END
+  if_stmt    ::= IF expr NEWLINE statement* [ELSE NEWLINE statement*] END
+  call_stmt  ::= CALL IDENT expr?
+  cmd_stmt   ::= KEYWORD [expr]
+  expr       ::= NUMBER | FLOAT | IDENT | expr OP expr
+"""
+
+# ─────────────────────────────────────────────
+# AST Node definitions
+# ─────────────────────────────────────────────
+class Node:
+    pass
+
 
 class Command(Node):
-    def __init__(self, name, value=None):
-        self.name = name
+    """A single drawing command, e.g. FORWARD 80, PENDOWN, COLOR "red"."""
+    def __init__(self, name: str, value=None, line: int = 0):
+        self.name  = name
         self.value = value
+        self.line  = line
 
-class Repeat(Node):
-    def __init__(self, count, body):
-        self.count = count
-        self.body = body
+    def __repr__(self):
+        return f"Command({self.name}, value={self.value!r})"
+
 
 class SetVar(Node):
-    def __init__(self, name, value):
-        self.name = name
+    """Variable assignment: SET name = value"""
+    def __init__(self, name: str, value, line: int = 0):
+        self.name  = name
         self.value = value
+        self.line  = line
+
+    def __repr__(self):
+        return f"SetVar({self.name!r} = {self.value!r})"
+
+
+class Repeat(Node):
+    """REPEAT count ... END"""
+    def __init__(self, count, body: list, line: int = 0):
+        self.count = count
+        self.body  = body
+        self.line  = line
+
+    def __repr__(self):
+        return f"Repeat(count={self.count!r}, body={self.body!r})"
+
 
 class Proc(Node):
-    def __init__(self, name, param, body):
-        self.name = name
+    """PROC name [param] ... END"""
+    def __init__(self, name: str, param: str | None, body: list, line: int = 0):
+        self.name  = name
         self.param = param
-        self.body = body
+        self.body  = body
+        self.line  = line
+
+    def __repr__(self):
+        return f"Proc({self.name!r}, param={self.param!r}, body={self.body!r})"
+
 
 class Call(Node):
-    def __init__(self, name, arg):
+    """CALL name [arg]"""
+    def __init__(self, name: str, arg=None, line: int = 0):
         self.name = name
-        self.arg = arg
+        self.arg  = arg
+        self.line = line
+
+    def __repr__(self):
+        return f"Call({self.name!r}, arg={self.arg!r})"
 
 
-def parser(tokens):
-    i = 0
+class IfStmt(Node):
+    """IF condition ... [ELSE ...] END"""
+    def __init__(self, condition, then_body: list, else_body: list, line: int = 0):
+        self.condition = condition
+        self.then_body = then_body
+        self.else_body = else_body
+        self.line      = line
 
-    def parse_block():
-        nonlocal i
-        stmts = []
+    def __repr__(self):
+        return (f"If(cond={self.condition!r}, "
+                f"then={self.then_body!r}, else={self.else_body!r})")
 
-        while i < len(tokens):
-            t = tokens[i]
 
-            if t.value == "END":
-                i += 1
+# ─────────────────────────────────────────────
+# Parser
+# ─────────────────────────────────────────────
+def parser(tokens: list) -> list:
+    """
+    Parse *tokens* into an AST (list of Node).
+    Skips NEWLINE tokens transparently.
+    Reports errors with line/col info and continues where possible.
+    """
+    # Filter out NEWLINE tokens — the grammar doesn't need them after lexing
+    toks = [t for t in tokens if t.type != "NEWLINE"]
+    pos  = [0]          # mutable so nested functions can update it
+    errors: list[str] = []
+
+    def peek(offset: int = 0):
+        idx = pos[0] + offset
+        return toks[idx] if idx < len(toks) else None
+
+    def advance():
+        t = toks[pos[0]] if pos[0] < len(toks) else None
+        pos[0] += 1
+        return t
+
+    def expect_ident(context: str = ""):
+        t = peek()
+        if t and t.type == "IDENT":
+            return advance()
+        loc = f" at line {t.line}" if t else ""
+        errors.append(
+            f"  Syntax Error{loc}: expected identifier {context}, "
+            f"got {t.type}({t.value!r})" if t else
+            f"  Syntax Error: expected identifier {context}, got EOF"
+        )
+        return None
+
+    def parse_expr():
+        """
+        Parse a simple expression: NUMBER | FLOAT | IDENT | STRING.
+        No full infix parsing — keeps things simple for this DSL.
+        If a constant arithmetic expression appears (e.g. 2 + 3),
+        constant-fold it here for the constant-folding optimisation.
+        """
+        t = peek()
+        if t is None:
+            return None
+        if t.type in ("NUMBER", "FLOAT"):
+            advance()
+            left = t.value
+            # Constant folding: fold binary op with another constant
+            op_t = peek()
+            if op_t and op_t.type == "OP" and op_t.value in ("+", "-", "*", "/"):
+                right_t = peek(1)
+                if right_t and right_t.type in ("NUMBER", "FLOAT"):
+                    advance()  # consume op
+                    advance()  # consume right operand
+                    op = op_t.value
+                    r  = right_t.value
+                    if op == "+": left = left + r
+                    elif op == "-": left = left - r
+                    elif op == "*": left = left * r
+                    elif op == "/": left = left / r if r != 0 else left
+            return left
+        if t.type in ("IDENT", "STRING"):
+            advance()
+            return t.value
+        return None
+
+    def parse_block(end_keywords=("END",)):
+        """Parse statements until one of *end_keywords* is consumed."""
+        body = []
+        while True:
+            t = peek()
+            if t is None:
+                errors.append("  Syntax Error: unexpected EOF inside block")
                 break
+            if t.type == "KEYWORD" and t.value in end_keywords:
+                advance()   # consume END / ELSE
+                break
+            stmt = parse_statement()
+            if stmt:
+                body.append(stmt)
+        return body
 
-            # SET
-            if t.value == "SET":
-                name = tokens[i+1].value
-                value = tokens[i+3].value
-                stmts.append(SetVar(name, value))
-                i += 4
+    def parse_statement():
+        t = peek()
+        if t is None:
+            return None
 
-            # REPEAT
-            elif t.value == "REPEAT":
-                count = tokens[i+1].value
-                i += 2
-                body = parse_block()
-                stmts.append(Repeat(count, body))
+        # ── SET ──────────────────────────────────────────
+        if t.type == "KEYWORD" and t.value == "SET":
+            line = t.line
+            advance()                   # consume SET
+            name_t = expect_ident("after SET")
+            if name_t is None:
+                return None
+            name = name_t.value
+            # Optional '=' operator
+            eq = peek()
+            if eq and eq.type == "OP" and eq.value == "=":
+                advance()               # consume '='
+            value = parse_expr()
+            return SetVar(name, value, line)
 
-            # PROC
-            elif t.value == "PROC":
-                name = tokens[i+1].value
-                param = tokens[i+2].value
-                i += 3
-                body = parse_block()
-                stmts.append(Proc(name, param, body))
+        # ── REPEAT ───────────────────────────────────────
+        if t.type == "KEYWORD" and t.value == "REPEAT":
+            line = t.line
+            advance()
+            count = parse_expr()
+            body  = parse_block(end_keywords=("END",))
+            return Repeat(count, body, line)
 
-            # CALL
-            elif t.value == "CALL":
-                name = tokens[i+1].value
-                arg = tokens[i+2].value
-                stmts.append(Call(name, arg))
-                i += 3
+        # ── PROC ─────────────────────────────────────────
+        if t.type == "KEYWORD" and t.value == "PROC":
+            line = t.line
+            advance()
+            name_t = expect_ident("after PROC")
+            if name_t is None:
+                return None
+            name  = name_t.value
+            # Optional parameter (an IDENT that is NOT a keyword)
+            param = None
+            nxt   = peek()
+            if nxt and nxt.type == "IDENT":
+                param = advance().value
+            body  = parse_block(end_keywords=("END",))
+            return Proc(name, param, body, line)
 
-            # COMMAND
-            else:
-                name = t.value
-                val = None
-                if i+1 < len(tokens) and tokens[i+1].type == "NUMBER":
-                    val = tokens[i+1].value
-                    i += 2
-                else:
-                    i += 1
-                stmts.append(Command(name, val))
+        # ── IF / ELSE ─────────────────────────────────────
+        if t.type == "KEYWORD" and t.value == "IF":
+            line = t.line
+            advance()
+            condition   = parse_expr()
+            # parse until ELSE or END
+            then_body: list = []
+            else_body: list = []
+            while True:
+                tt = peek()
+                if tt is None:
+                    errors.append(f"  Syntax Error at line {line}: unclosed IF")
+                    break
+                if tt.type == "KEYWORD" and tt.value == "END":
+                    advance()
+                    break
+                if tt.type == "KEYWORD" and tt.value == "ELSE":
+                    advance()
+                    else_body = parse_block(end_keywords=("END",))
+                    break
+                s = parse_statement()
+                if s:
+                    then_body.append(s)
+            return IfStmt(condition, then_body, else_body, line)
 
-        return stmts
+        # ── CALL ─────────────────────────────────────────
+        if t.type == "KEYWORD" and t.value == "CALL":
+            line = t.line
+            advance()
+            name_t = expect_ident("after CALL")
+            if name_t is None:
+                return None
+            name = name_t.value
+            arg  = parse_expr()         # optional argument
+            return Call(name, arg, line)
 
-    return parse_block()
+        # ── Drawing / pen commands ───────────────────────
+        if t.type == "KEYWORD" and t.value in (
+            "FORWARD", "BACK", "LEFT", "RIGHT",
+            "PENUP", "PENDOWN", "COLOR", "PENWIDTH", "CIRCLE",
+        ):
+            line = t.line
+            advance()
+            val = parse_expr()          # optional argument
+            return Command(t.value, val, line)
+
+        # Unknown token — skip and report
+        errors.append(
+            f"  Syntax Error at line {t.line}: "
+            f"unexpected token {t.type}({t.value!r})"
+        )
+        advance()
+        return None
+
+    # ── Top-level parse ───────────────────────────────────
+    ast = []
+    while peek() is not None:
+        s = parse_statement()
+        if s:
+            ast.append(s)
+
+    if errors:
+        print("\n[PARSER] Errors found:")
+        for e in errors:
+            print(e)
+
+    return ast
