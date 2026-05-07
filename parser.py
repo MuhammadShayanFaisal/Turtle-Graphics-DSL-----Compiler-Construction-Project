@@ -15,9 +15,6 @@ Grammar (simplified EBNF):
   expr       ::= NUMBER | FLOAT | IDENT | expr OP expr
 """
 
-# ─────────────────────────────────────────────
-# AST Node definitions
-# ─────────────────────────────────────────────
 class Node:
     pass
 
@@ -90,19 +87,14 @@ class IfStmt(Node):
         return (f"If(cond={self.condition!r}, "
                 f"then={self.then_body!r}, else={self.else_body!r})")
 
-
-# ─────────────────────────────────────────────
-# Parser
-# ─────────────────────────────────────────────
 def parser(tokens: list) -> list:
     """
     Parse *tokens* into an AST (list of Node).
     Skips NEWLINE tokens transparently.
     Reports errors with line/col info and continues where possible.
     """
-    # Filter out NEWLINE tokens — the grammar doesn't need them after lexing
     toks = [t for t in tokens if t.type != "NEWLINE"]
-    pos  = [0]          # mutable so nested functions can update it
+    pos  = [0]          
     errors: list[str] = []
 
     def peek(offset: int = 0):
@@ -139,13 +131,12 @@ def parser(tokens: list) -> list:
         if t.type in ("NUMBER", "FLOAT"):
             advance()
             left = t.value
-            # Constant folding: fold binary op with another constant
             op_t = peek()
             if op_t and op_t.type == "OP" and op_t.value in ("+", "-", "*", "/"):
                 right_t = peek(1)
                 if right_t and right_t.type in ("NUMBER", "FLOAT"):
-                    advance()  # consume op
-                    advance()  # consume right operand
+                    advance()  
+                    advance() 
                     op = op_t.value
                     r  = right_t.value
                     if op == "+": left = left + r
@@ -159,7 +150,6 @@ def parser(tokens: list) -> list:
         return None
 
     def parse_block(end_keywords=("END",)):
-        """Parse statements until one of *end_keywords* is consumed."""
         body = []
         while True:
             t = peek()
@@ -167,7 +157,7 @@ def parser(tokens: list) -> list:
                 errors.append("  Syntax Error: unexpected EOF inside block")
                 break
             if t.type == "KEYWORD" and t.value in end_keywords:
-                advance()   # consume END / ELSE
+                advance()  
                 break
             stmt = parse_statement()
             if stmt:
@@ -179,22 +169,19 @@ def parser(tokens: list) -> list:
         if t is None:
             return None
 
-        # ── SET ──────────────────────────────────────────
         if t.type == "KEYWORD" and t.value == "SET":
             line = t.line
-            advance()                   # consume SET
+            advance()                  
             name_t = expect_ident("after SET")
             if name_t is None:
                 return None
             name = name_t.value
-            # Optional '=' operator
             eq = peek()
             if eq and eq.type == "OP" and eq.value == "=":
-                advance()               # consume '='
+                advance()               
             value = parse_expr()
             return SetVar(name, value, line)
 
-        # ── REPEAT ───────────────────────────────────────
         if t.type == "KEYWORD" and t.value == "REPEAT":
             line = t.line
             advance()
@@ -202,7 +189,6 @@ def parser(tokens: list) -> list:
             body  = parse_block(end_keywords=("END",))
             return Repeat(count, body, line)
 
-        # ── PROC ─────────────────────────────────────────
         if t.type == "KEYWORD" and t.value == "PROC":
             line = t.line
             advance()
@@ -210,7 +196,6 @@ def parser(tokens: list) -> list:
             if name_t is None:
                 return None
             name  = name_t.value
-            # Optional parameter (an IDENT that is NOT a keyword)
             param = None
             nxt   = peek()
             if nxt and nxt.type == "IDENT":
@@ -218,7 +203,6 @@ def parser(tokens: list) -> list:
             body  = parse_block(end_keywords=("END",))
             return Proc(name, param, body, line)
 
-        # ── IF / ELSE ─────────────────────────────────────
         if t.type == "KEYWORD" and t.value == "IF":
             line = t.line
             advance()
@@ -243,7 +227,6 @@ def parser(tokens: list) -> list:
                     then_body.append(s)
             return IfStmt(condition, then_body, else_body, line)
 
-        # ── CALL ─────────────────────────────────────────
         if t.type == "KEYWORD" and t.value == "CALL":
             line = t.line
             advance()
@@ -251,20 +234,18 @@ def parser(tokens: list) -> list:
             if name_t is None:
                 return None
             name = name_t.value
-            arg  = parse_expr()         # optional argument
+            arg  = parse_expr()         
             return Call(name, arg, line)
 
-        # ── Drawing / pen commands ───────────────────────
         if t.type == "KEYWORD" and t.value in (
             "FORWARD", "BACK", "LEFT", "RIGHT",
             "PENUP", "PENDOWN", "COLOR", "PENWIDTH", "CIRCLE",
         ):
             line = t.line
             advance()
-            val = parse_expr()          # optional argument
+            val = parse_expr()          
             return Command(t.value, val, line)
 
-        # Unknown token — skip and report
         errors.append(
             f"  Syntax Error at line {t.line}: "
             f"unexpected token {t.type}({t.value!r})"
@@ -272,7 +253,6 @@ def parser(tokens: list) -> list:
         advance()
         return None
 
-    # ── Top-level parse ───────────────────────────────────
     ast = []
     while peek() is not None:
         s = parse_statement()
@@ -283,5 +263,4 @@ def parser(tokens: list) -> list:
         print("\n[PARSER] Errors found:")
         for e in errors:
             print(e)
-
     return ast

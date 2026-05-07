@@ -1,24 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="310.72 100.00 455.69 440.00" width="800" height="800">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="300.00 235.54 277.10 277.10" width="800" height="800">
   <rect width="100%" height="100%" fill="white"/>
   <line x1="400.0000" y1="400.0000" x2="400.0000" y2="400.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
   <line x1="400.0000" y1="400.0000" x2="400.0000" y2="400.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
   <line x1="400.0000" y1="400.0000" x2="400.0000" y2="400.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="400.0000" y1="400.0000" x2="400.0000" y2="320.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="400.0000" y1="320.0000" x2="330.7180" y2="280.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="330.7180" y1="280.0000" x2="400.0000" y2="240.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="400.0000" y1="240.0000" x2="469.2820" y2="200.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="469.2820" y1="200.0000" x2="469.2820" y2="120.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="469.2820" y1="120.0000" x2="538.5641" y2="160.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="538.5641" y1="160.0000" x2="607.8461" y2="200.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="607.8461" y1="200.0000" x2="677.1281" y2="160.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="677.1281" y1="160.0000" x2="677.1281" y2="240.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="677.1281" y1="240.0000" x2="677.1281" y2="320.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="677.1281" y1="320.0000" x2="746.4102" y2="360.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="746.4102" y1="360.0000" x2="677.1281" y2="400.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="677.1281" y1="400.0000" x2="607.8461" y2="440.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="607.8461" y1="440.0000" x2="607.8461" y2="520.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="607.8461" y1="520.0000" x2="538.5641" y2="480.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="538.5641" y1="480.0000" x2="469.2820" y2="440.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="469.2820" y1="440.0000" x2="400.0000" y2="480.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
-  <line x1="400.0000" y1="480.0000" x2="400.0000" y2="400.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="400.0000" y1="400.0000" x2="440.0000" y2="330.7180" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="440.0000" y1="330.7180" x2="412.6384" y2="255.5426" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="412.6384" y1="255.5426" x2="412.6384" y2="335.5426" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="412.6384" y1="335.5426" x2="481.9204" y2="375.5426" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="481.9204" y1="375.5426" x2="557.0958" y2="348.1809" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="557.0958" y1="348.1809" x2="477.0958" y2="348.1809" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="477.0958" y1="348.1809" x2="437.0958" y2="417.4630" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="437.0958" y1="417.4630" x2="464.4574" y2="492.6384" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="464.4574" y1="492.6384" x2="464.4574" y2="412.6384" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="464.4574" y1="412.6384" x2="395.1754" y2="372.6384" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="395.1754" y1="372.6384" x2="320.0000" y2="400.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="320.0000" y1="400.0000" x2="400.0000" y2="400.0000" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="400.0000" y1="400.0000" x2="440.0000" y2="330.7180" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="440.0000" y1="330.7180" x2="412.6384" y2="255.5426" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="412.6384" y1="255.5426" x2="412.6384" y2="335.5426" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="412.6384" y1="335.5426" x2="481.9204" y2="375.5426" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="481.9204" y1="375.5426" x2="557.0958" y2="348.1809" stroke="black" stroke-width="2" stroke-linecap="round"/>
+  <line x1="557.0958" y1="348.1809" x2="477.0958" y2="348.1809" stroke="black" stroke-width="2" stroke-linecap="round"/>
 </svg>

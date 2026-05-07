@@ -6,9 +6,6 @@ Token types: KEYWORD, NUMBER, FLOAT, STRING, IDENT, NEWLINE
 
 import re
 
-# ─────────────────────────────────────────────
-# Keyword set (all uppercase commands)
-# ─────────────────────────────────────────────
 KEYWORDS = {
     "FORWARD", "BACK", "LEFT", "RIGHT",
     "PENUP", "PENDOWN", "SET",
@@ -17,9 +14,6 @@ KEYWORDS = {
     "IF", "ELSE",
 }
 
-# ─────────────────────────────────────────────
-# Token spec: (type, regex) in priority order
-# ─────────────────────────────────────────────
 TOKEN_SPEC = [
     ("FLOAT",    r'\d+\.\d+'),           # float before int
     ("NUMBER",   r'\d+'),                # integer
@@ -51,10 +45,7 @@ class Token:
 
 
 def lexer(code: str) -> list[Token]:
-    """
-    Tokenise *code* and return a list of Token objects.
-    Prints a lexical error and continues on unrecognised characters.
-    """
+
     tokens: list[Token] = []
     errors: list[str]   = []
     line_num = 1
@@ -66,7 +57,7 @@ def lexer(code: str) -> list[Token]:
         col   = mo.start() - line_start + 1
 
         if kind == "SKIP":
-            continue                     # whitespace / comment — skip silently
+            continue                    
 
         elif kind == "NEWLINE":
             tokens.append(Token("NEWLINE", "\n", line_num, col))
@@ -80,7 +71,6 @@ def lexer(code: str) -> list[Token]:
             tokens.append(Token("NUMBER", int(value), line_num, col))
 
         elif kind == "STRING":
-            # Strip surrounding quotes
             tokens.append(Token("STRING", value[1:-1], line_num, col))
 
         elif kind == "IDENT":
@@ -99,7 +89,6 @@ def lexer(code: str) -> list[Token]:
                 f"unexpected character {value!r}"
             )
 
-    # Report all lexical errors together (non-fatal)
     if errors:
         print("\n[LEXER] Errors found:")
         for e in errors:

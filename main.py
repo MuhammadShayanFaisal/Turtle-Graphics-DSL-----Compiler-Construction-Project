@@ -1,6 +1,4 @@
 """
-main.py  —  TurtleScript Compiler Entry Point
-
 Usage:
   python main.py <file.logo> [-o output.svg]   Compile file to SVG
   python main.py <file.logo> --debug           Compile with verbose phase output
@@ -16,10 +14,6 @@ from ir       import generate_ir
 from optimizer import optimize_ir
 from codegen  import generate_svg
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Debug helpers
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _fmt_tokens(tokens: list) -> str:
     lines = []
@@ -62,50 +56,41 @@ def debug_print(title: str, content: str):
     print(f"\n--- {title} ---")
     print(content)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Compile pipeline
-# ─────────────────────────────────────────────────────────────────────────────
-
 def compile_code(code: str, output_file: str = "output.svg", debug: bool = False):
     if debug:
         debug_print("SOURCE CODE", code)
 
-    # ── Phase 1: Lexical Analysis ─────────────────────────────────────────
+    # Lexical Analysis ─────────────────────────────────────────
     tokens = lexer(code)
     if debug:
         debug_print("TOKENS", _fmt_tokens(tokens))
 
-    # ── Phase 2: Syntax Analysis ──────────────────────────────────────────
+    # Syntax Analysis ──────────────────────────────────────────
     ast = parser(tokens)
     if debug:
         debug_print("AST", _fmt_ast(ast))
 
-    # ── Phase 3: Semantic Analysis ────────────────────────────────────────
+    # Semantic Analysis ────────────────────────────────────────
     ast, symbols, procedures = semantic_analysis(ast)
     if debug:
         debug_print("SYMBOL TABLE (global)", str(symbols))
         debug_print("PROCEDURES DEFINED",
                     str({k: f"param={v.param}" for k, v in procedures.items()}))
 
-    # ── Phase 4: IR Generation ────────────────────────────────────────────
+    # IR Generation ────────────────────────────────────────────
     ir = generate_ir(ast)
     if debug:
         debug_print("IR BEFORE OPTIMISATION", _fmt_ir(ir))
 
-    # ── Phase 5: Optimisation ─────────────────────────────────────────────
+    # Optimisation ─────────────────────────────────────────────
     ir_opt = optimize_ir(ir)
     if debug:
         debug_print("IR AFTER OPTIMISATION", _fmt_ir(ir_opt))
 
-    # ── Phase 6: Code Generation ──────────────────────────────────────────
+    # Code Generation ──────────────────────────────────────────
     generate_svg(ir_opt, output_file)
-    print(f"\n✅ Output generated: {output_file}")
+    print(f"\nOutput generated: {output_file}")
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Interactive REPL
-# ─────────────────────────────────────────────────────────────────────────────
 
 def repl():
     print("TurtleScript REPL — type multi-line programs, then blank line to run.")
@@ -140,10 +125,6 @@ def repl():
         compile_code(code, output_file=out_file, debug=False)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Entry point
-# ─────────────────────────────────────────────────────────────────────────────
-
 def main():
     args = sys.argv[1:]
 
@@ -151,12 +132,9 @@ def main():
         print(__doc__)
         return
 
-    # Interactive REPL
     if "--interactive" in args:
         repl()
         return
-
-    # Normal compile
     input_file  = args[0]
     debug       = "--debug" in args
     output_file = "output.svg"
