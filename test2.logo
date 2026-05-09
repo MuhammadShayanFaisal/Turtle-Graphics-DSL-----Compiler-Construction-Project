@@ -1,0 +1,6 @@
+PENDOWN
+REPEAT 4
+    FORWARD 100
+    RIGHT 90
+END
+# Expected: a square with 100px sides

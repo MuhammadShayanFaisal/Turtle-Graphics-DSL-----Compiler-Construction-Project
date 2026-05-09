@@ -1,0 +1,7 @@
+SET side = 40 + 60
+PENDOWN
+REPEAT 4
+    FORWARD side
+    RIGHT 90
+END
+# Expected: same square as Test 2 (40+60=100 folded at parse time)

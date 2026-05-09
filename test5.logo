@@ -1,0 +1,7 @@
+# This program has intentional errors:
+FORWARD ghost_var    # error: 'ghost_var' not defined
+CALL missing 10      # error: 'missing' not defined
+PROC f a             # correct definition
+    FORWARD a
+END
+CALL f               # error: f expects arg, none given

@@ -1,0 +1,10 @@
+SET flag = 1
+PENDOWN
+IF flag
+    FORWARD 80
+    RIGHT 90
+    FORWARD 80
+ELSE
+    CIRCLE 50
+END
+# Expected: an L-shape (flag=1 → then branch)

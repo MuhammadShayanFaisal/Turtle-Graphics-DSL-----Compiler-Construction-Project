@@ -1,17 +1,11 @@
 SET size = 80
-
 PROC draw len
-PENDOWN
-FORWARD len
-LEFT 50
-FORWARD len
-RIGHT 200
-FORWARD len
-LEFT 120
-PENUP
+    PENDOWN
+    FORWARD len  LEFT 540  FORWARD len  RIGHT 600  FORWARD len  LEFT 100
+    PENUP
 END
-
 REPEAT 6
-CALL draw size
-RIGHT 60
+    CALL draw size
+    RIGHT 60
 END
+# Expected: 6-pointed star centred on canvas
