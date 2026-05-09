@@ -1,2 +1,2 @@
 # Turtle-Graphics-DSL-----Compiler-Construction-Project
-#### It is a mini compiler which converts our souce code into target format, Our source code is turtle instrctions an dout target format is Shape in .svg format.
+#### It is a mini compiler which converts our souce code into target format, Our source code is turtle instrctions an dur target format is Shape in .svg format.
