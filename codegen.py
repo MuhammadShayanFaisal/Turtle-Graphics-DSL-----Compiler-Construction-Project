@@ -14,8 +14,6 @@ Handles:
 
 import math
 
-
-# ── Canvas settings ───────────────────────────────────────────────────────────
 CANVAS_W = 800
 CANVAS_H = 800
 ORIGIN_X = CANVAS_W / 2
@@ -23,22 +21,21 @@ ORIGIN_Y = CANVAS_H / 2
 
 
 def generate_svg(ir: list, output_file: str):
-    # ── Turtle state ─────────────────────────────────────────────────────────
     state = {
         "x":     ORIGIN_X,
         "y":     ORIGIN_Y,
-        "angle": -90.0,     # face upward (North) by convention, like LOGO
+        "angle": -90.0,     
         "pen":   True,
         "color": "black",
         "width": 2,
     }
 
-    symbols: dict  = {}   # global + local variable store
-    lines:   list  = []   # collected SVG drawing elements
-    circles: list  = []   # collected SVG circles
+    symbols: dict  = {}   
+    lines:   list  = []   
+    circles: list  = []  
 
-    # ── Build PROC definition table ───────────────────────────────────────────
-    procs: dict = {}      # name → (param, [instructions])
+   
+    procs: dict = {}    
     i = 0
     while i < len(ir):
         instr = ir[i]
@@ -62,13 +59,11 @@ def generate_svg(ir: list, output_file: str):
         else:
             i += 1
 
-    # ── Label map: label_name → index in ir ──────────────────────────────────
     label_map: dict = {}
     for idx, instr in enumerate(ir):
         if instr[0] == "LABEL":
             label_map[instr[1]] = idx
 
-    # ── Resolve a value: constant or variable lookup ──────────────────────────
     def resolve(val):
         if isinstance(val, (int, float)):
             return val
@@ -76,35 +71,26 @@ def generate_svg(ir: list, output_file: str):
             return symbols.get(val, 0)
         return 0
 
-    # ── Execute a flat list of TAC instructions ───────────────────────────────
     def execute(instructions: list, local_syms: dict | None = None):
-        """
-        Execute *instructions*.
-        If *local_syms* is provided (proc call context), those bindings
-        shadow the global symbols for the duration of the call.
-        """
         nonlocal state
 
-        # Overlay local scope on global symbols
         saved = {}
         if local_syms:
             for k, v in local_syms.items():
-                saved[k] = symbols.get(k)   # save old value
+                saved[k] = symbols.get(k)  
                 symbols[k] = v
 
-        repeat_stack = []   # [(start_index, remaining_count)]
+        repeat_stack = []   
         pc = 0
 
         while pc < len(instructions):
             instr = instructions[pc]
             op    = instr[0]
 
-            # ── SET ───────────────────────────────────────────────────────
             if op == "SET":
                 symbols[instr[1]] = resolve(instr[2])
                 pc += 1
 
-            # ── CMD ───────────────────────────────────────────────────────
             elif op == "CMD":
                 cmd = instr[1]
                 val = resolve(instr[2])
@@ -135,7 +121,6 @@ def generate_svg(ir: list, output_file: str):
                         ))
                 pc += 1
 
-            # ── REPEAT ────────────────────────────────────────────────────
             elif op == "REPEAT_START":
                 count = int(resolve(instr[1]))
                 repeat_stack.append([pc, count])
@@ -147,18 +132,16 @@ def generate_svg(ir: list, output_file: str):
                     count -= 1
                     if count > 0:
                         repeat_stack[-1][1] = count
-                        pc = start + 1      # jump back to first instr after REPEAT_START
+                        pc = start + 1     
                     else:
                         repeat_stack.pop()
                         pc += 1
                 else:
                     pc += 1
 
-            # ── PROC_START / PROC_END (skip at runtime, already indexed) ──
             elif op in ("PROC_START", "PROC_END"):
                 pc += 1
 
-            # ── CALL ──────────────────────────────────────────────────────
             elif op == "CALL":
                 _, proc_name, arg = instr
                 if proc_name in procs:
@@ -169,11 +152,9 @@ def generate_svg(ir: list, output_file: str):
                     execute(body, local_syms=local)
                 pc += 1
 
-            # ── IF / JUMP / LABEL (from IfStmt IR) ────────────────────────
             elif op == "IF_FALSE":
                 cond_val = resolve(instr[1])
                 if not cond_val:
-                    # jump to else label
                     target = instr[2]
                     pc = _find_label(instructions, target) + 1
                 else:
@@ -189,7 +170,6 @@ def generate_svg(ir: list, output_file: str):
             else:
                 pc += 1
 
-        # Restore overridden globals
         if local_syms:
             for k, old_val in saved.items():
                 if old_val is None:
@@ -216,10 +196,8 @@ def generate_svg(ir: list, output_file: str):
         state["x"] = nx
         state["y"] = ny
 
-    # ── Run the full IR ───────────────────────────────────────────────────────
     execute(ir)
 
-    # ── Compute bounding box for viewBox ──────────────────────────────────────
     if lines or circles:
         all_x = [x1 for x1, y1, x2, y2, *_ in lines] + \
                 [x2 for x1, y1, x2, y2, *_ in lines] + \
@@ -237,7 +215,6 @@ def generate_svg(ir: list, output_file: str):
     else:
         viewbox = f"0 0 {CANVAS_W} {CANVAS_H}"
 
-    # ── Write SVG ─────────────────────────────────────────────────────────────
     with open(output_file, "w") as f:
         f.write(
             f'<svg xmlns="http://www.w3.org/2000/svg" '
